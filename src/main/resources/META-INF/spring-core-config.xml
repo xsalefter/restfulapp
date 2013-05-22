@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:oxm="http://www.springframework.org/schema/oxm"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util" 
+    xmlns:task="http://www.springframework.org/schema/task"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd 
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd 
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util.xsd 
+        http://www.springframework.org/schema/task 
+        http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/oxm 
+        http://www.springframework.org/schema/oxm/spring-oxm.xsd 
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:property-placeholder file-encoding="utf-8" location="classpath:application.properties" />
+
+    <context:component-scan base-package="com.xsalefter.restfulapp.spring" />
+    <context:component-scan base-package="com.xsalefter.restfulapp.component" />
+    
+    <bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+        <property name="driverClass" value="${rdbms.jdbcClass}" />
+        <property name="jdbcUrl" value="${rdbms.url}" />
+        <property name="username" value="${rdbms.username}" />
+        <property name="password" value="${rdbms.password}" />
+        <property name="idleConnectionTestPeriod" value="60" />
+        <property name="idleMaxAge" value="240" />
+        <property name="maxConnectionsPerPartition" value="30" />
+        <property name="minConnectionsPerPartition" value="10" />
+        <property name="partitionCount" value="3" />
+        <property name="acquireIncrement" value="5"/>
+        <property name="statementsCacheSize" value="100" />
+        <property name="releaseHelperThreads" value="3" />
+    </bean>
+
+    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+
+    <bean id="persistenceUnitManager" 
+        class="org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager">
+        <property name="defaultDataSource" ref="dataSource" />
+        <property name="persistenceXmlLocations">
+            <list>
+                <value>classpath*:persistence.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="persistenceUnitManager" ref="persistenceUnitManager" />
+        <property name="persistenceUnitName" value="restfulapp-pu" />
+        <property name="packagesToScan">
+            <list>
+                <value>com.xsalefter.restfulapp.entity</value>
+            </list>
+        </property>
+    </bean>
+
+    <tx:annotation-driven />
+
+    <bean id="transactionManager" 
+        class="org.springframework.orm.jpa.JpaTransactionManager" 
+        p:entityManagerFactory-ref="entityManagerFactory" />
+
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+
+</beans>
